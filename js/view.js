@@ -186,6 +186,7 @@ define(function(require,exports,module){
             _.each(energys,function(e){
                 e.trigger("used");
             })
+            this.trigger("selectedChange")
         },
         removeEnergy:function(energys){
             _.each(energys,function(e){
