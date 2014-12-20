@@ -149,9 +149,14 @@ define(function(require,exports,module) {
         $("body").append("<div class='main-window-wrapper'></div>")
         calculateScreenSize();
 
+        window.globalGameStatus = {
+            tutorial : {
+                on: true
+            }
+        }
         var store = localStorage.getItem("tutorial");
         if ( store != null ){
-            gameModeStatus.tutorial.on = JSON.parse(store);
+            globalGameStatus.tutorial.on = JSON.parse(store);
         }
 
         initStatistic();
