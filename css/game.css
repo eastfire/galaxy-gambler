@@ -1,0 +1,285 @@
+.unselectable {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+}
+
+.animator {
+    transition: left 0.4s ease-in-out 0s, top 0.4s ease-in-out 0s;
+}
+
+body {
+    overflow: hidden;
+}
+
+.preload {
+    display: none;
+}
+
+.main-window {
+    height: auto;
+    width: auto;
+    margin: auto;
+    position:absolute;
+}
+
+/* space */
+.space {
+    width:100%;
+    background-image: url(../img/space.jpg);
+    position: relative;
+}
+
+/* engine */
+.energy-list{
+    position:relative;
+    padding-top: 10px;
+}
+
+.sort-type-suit-color1 {
+    width:5px;
+    height:10px;
+    display: inline-block;
+    background-color: green;
+}
+.sort-type-suit-color2 {
+    width:5px;
+    height:10px;
+    display: inline-block;
+    background-color: red;
+}
+.sort-type-suit-color3 {
+    width:5px;
+    height:10px;
+    display: inline-block;
+    background-color: yellow;
+}
+
+.energy-card {
+    border: 1px solid #000000;
+    border-radius: 10%;
+    font-size: 2em;
+    line-height: 100%;
+    padding-top: 1%;
+    position: absolute;
+    text-align: center;
+    transition: all 0.39s ease-in-out 0s;
+}
+
+.energy-card.selected {
+    box-shadow: 1px 5px 5px black;
+    margin-top: -5px;
+}
+
+.energy-card {
+    background-color: white;
+}
+
+.energy-card.shield .symbol{
+    color: deepskyblue;
+}
+.energy-card.tool .symbol{
+    color: forestgreen;
+}
+.energy-card.energy .symbol{
+    color: #ffff00;
+}
+.energy-card.fire .symbol{
+    color: red;
+}
+.energy-card.dark .symbol{
+    color: darkgray;
+}
+/* engine  end */
+
+/*equipment*/
+.active-equipment {
+    width:33%;
+    display:inline-block;
+}
+
+.active-btn {
+    width:100%;
+}
+
+.active-equipment .valid-status {
+    display:inline-block;
+    background-size: cover;
+    background-image: url("../img/off.png");
+    height: 15px;
+    vertical-align: middle;
+    width: 15px;
+}
+
+.active-equipment.ok .valid-status {
+    background-image: url("../img/on.png");
+}
+
+.active-equipment .symbol {
+    transition: all 0.3s ease-in-out 0s;
+}
+
+.active-equipment.overdrive .symbol {
+     color:darkred;
+ }
+
+.active-equipment.overdrive.timer-tick .symbol {
+    color:red;
+    transform: scale(1.1);
+}
+
+.active-equipment.disabled .valid-status {
+    display: none;
+}
+
+.active-equipment .cool-down-count-down {
+    height: 20px;
+    vertical-align: middle;
+    width: 20px;
+}
+.active-equipment .cool-down-count-down {
+    display: none;
+}
+.active-equipment.disabled .cool-down-count-down {
+    display: inline-block;
+}
+
+.requirement {
+    background-image: url("../img/requirement.png");
+    display: inline-block;
+    vertical-align: middle;
+    height:30px;
+    margin: 0 3px;
+}
+
+.requirement.any-suit-same-number-step2-1 {
+    background-position: 0px 0px;
+    width:19px;
+}
+
+.requirement.any-suit-same-number-step2-1more {
+    background-position: -23px 0px;
+    width:29px;
+}
+
+.requirement.any-suit-same-number-step2-2 {
+    background-position: -55px 0px;
+    width:38px;
+}
+
+.requirement.any-suit-same-number-step2-2more {
+    background-position: -95px 0px;
+    width:48px;
+}
+
+.requirement.any-suit-same-number-step3-1 {
+    background-position: 0px 0px;
+    width:30px;
+}
+
+.requirement.any-suit-same-number-step3-1more {
+    background-position: 0px 0px;
+    width:30px;
+}
+
+.requirement.any-suit-same-number-step3-2 {
+    background-position: 0px 0px;
+    width:30px;
+}
+
+.requirement.any-suit-same-number-step3-2more {
+    background-position: 0px 0px;
+    width:30px;
+}
+
+.requirement.same-suit-any-number-3 {
+    background-position: 0px -99px;
+    width:19px;
+}
+.requirement.same-suit-any-number-3more {
+    background-position: -26px -99px;
+    width:28px;
+}
+.requirement.same-suit-any-number-4 {
+    background-position: 0px -99px;
+    width:30px;
+}
+.requirement.same-suit-any-number-4more {
+    background-position: 0px -99px;
+    width:30px;
+}
+.requirement.same-suit-any-number-5 {
+    background-position: 0px -99px;
+    width:30px;
+}
+
+/*equipment end*/
+
+/*ship status*/
+.ship-status {
+    position:absolute;
+}
+
+.space #my-ship-status {
+    bottom: 10px;
+    left: 0px;
+}
+
+.space #opponent-ship-status {
+    top: 10px;
+    right: 0px;
+}
+
+.status-border {
+    position: relative;
+}
+
+.ship-status .status-border {
+    width:200px;
+    height:18px;
+    border-radius: 0px 5px 5px 0;
+    background-color: white;
+}
+
+.ship-status.left .status-border {
+    border-radius: 5px 0px 0px 5px;
+}
+
+.ship-status .hp-border {
+    border:1px solid darkred;
+}
+
+.ship-status .shield-border {
+    border:1px solid darkblue;
+}
+
+.ship-status .status-bar {
+    height:16px;
+    transition: width 0.3s ease-in-out 0s;
+    color:black;
+}
+
+.ship-status.left .status-bar{
+    position: absolute;
+    right:0;
+}
+
+.ship-status #hp-bar {
+    background-color: red;
+}
+.ship-status #shield-bar {
+    background-color: blue;
+}
+.status-bar-label {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    color: black;
+    text-align: center;
+    line-height: 16px;
+}
+/*ship status end*/
