@@ -63,6 +63,10 @@ define(function(require,exports,module) {
         var rate = 0.1;
         cardWidth = gameWindowWidth * rate;
         cardHeight = gameWindowHeight * rate;
+
+        $("html").css({
+            "font-size": cardWidth*0.4+"px"
+        })
     }
 
     var renderGameWindow = function(){

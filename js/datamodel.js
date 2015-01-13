@@ -4,6 +4,7 @@ define(function (require, exports, module) {
             return {
                 name: "",
                 description:"",
+                shipClass:"asimov",
                 cargoSpace: 20,
                 weaponSpace: 10,
                 value: 100,
@@ -11,19 +12,72 @@ define(function (require, exports, module) {
                 maxHp: 100,
                 shield: 100,
                 maxShield: 100,
-                shieldDefenceRate: 0.5,
+                shieldDefenceRate: {
+                    "laser":1,
+                    "explosion":0.5
+                },
+                baseDodgeRate : 0,
+                dodgeRate : 0,
                 shieldBootThreshold: 50,
-                shieldStatus:"on"
+                shieldOn:true, //on off
+                shieldRegenerateEveryTick: 5,
+                hpRegenerateEveryTick: 5
             }
         },
-        getAttackValue:function(){
-
+        initialize:function(){
+            this.set("equipments", new Backbone.Collection() )
+            this.get("equipments").add(this.get("engine"))
         },
-        attack:function(type,target){
-
+        initialDeck:function(){
+            var cards = [];
+            this.get("equipments").each(function(equipment){
+                var provides = equipment.get("provides");
+                if ( provides ) {
+                    _.each(provides,function(provide){
+                        var count = provide.count || 1;
+                        for ( var i = 0; i < count; i++) {
+                            if ( provide.suits && provide.numbers ) {
+                                _.each( provide.suits, function( suit ){
+                                    _.each( provide.numbers, function( number ){
+                                        cards.push({
+                                            suit: suit,
+                                            number: number
+                                        })
+                                    },this )
+                                },this )
+                            }
+                        }
+                    },this)
+                }
+            })
+            this.get("engine").initialDeck(cards)
         },
-        beAttack:function(type, attack){
-
+        attack:function(weapon, damage){
+            this.trigger("attack", weapon, damage);
+        },
+        beAttack:function(damage, type){
+            if ( Math.random() > this.get("dodgeRate") ) {
+                this.takeDamage(damage, type)
+            }
+        },
+        takeDamage:function(damage, type){
+            if ( this.get("shieldOn") ) {
+                if ( this.get("shieldDefenceRate") ) {
+                    var rate = this.get("shieldDefenceRate")[type]
+                    if ( rate ) {
+                        var reduce = Math.min( this.get("shield"), Math.round( damage * rate ) );
+                        damage -= reduce;
+                    }
+                }
+            }
+            if ( damage )
+                this.hullTakeDamage( damage, type )
+        },
+        shieldTakeDamage:function(damage, type){
+            this.set("shield", this.get("shield") - damage )
+        },
+        hullTakeDamage:function(damage, type){
+            this.set("hp", this.get("hp") - damage )
         }
     })
     exports.EquipmentModel = Backbone.Model.extend({
@@ -46,7 +100,10 @@ define(function (require, exports, module) {
                 overdriveThreshold: 100,
                 currentOverDrive : 0,
                 basicCoolDown: 10,
-                currentCount: 1000
+                currentCount: 1000,
+                provides:[],
+                owner: null,
+                ship: null
             }
         },
         getRequirementClass:function(){
@@ -66,18 +123,15 @@ define(function (require, exports, module) {
             return reqStr;
         },
         initialize:function(){
-
-        },
-        getCoolDown:function(){
-            return this.get("basicCoolDown")
+            this.set("coolDown", this.get("basicCoolDown"))
         },
         getCountDown:function(){
-            return Math.max(0, this.getCoolDown() - this.get("currentCount"))
+            return Math.max(0, this.get("coolDown") - this.get("currentCount"))
         },
         isCool:function(){
             return this.getCountDown() == 0;
         },
-        active:function(){
+        active:function(energys){
             this.set("currentCount",0)
         },
         coolDown:function(level){
@@ -127,16 +181,99 @@ define(function (require, exports, module) {
         }
     })
 
+    exports.EngineModel = exports.EquipmentModel.extend({
+        defaults:function(){
+            return _.extend(exports.EquipmentModel.prototype.defaults.call(this),{
+                provides:[{
+                    numbers: [1,2,3,4,5,6,7,8],
+                    suits: ["shield","tool","energy","fire"],
+                    count: 1
+                }],
+                startingEnergy: 4,
+                basicCoolDown : 3,
+                generatePerCoolDown : 1,
+                maxEnergy: 10
+            })
+        },
+        initialize:function(){
+            exports.EquipmentModel.prototype.initialize.call(this)
+            this.set("deck", new Backbone.Collection())
+            this.set("discardDeck", new Backbone.Collection())
+            this.set("energy", new Backbone.Collection() );
+        },
+        initialDeck:function(cards){
+            this.get("deck").reset(cards);
+            this.get("deck").reset(this.get("deck").shuffle())
+            this.get("discardDeck").reset()
+        },
+        initialEnergy:function(){
+            this.get("energy").reset();
+            for ( var i = 0; i < this.get("startingEnergy"); i ++) {
+                this.generateOneEnergy()
+            }
+        },
+        generateOneEnergy:function(){
+            var card = null;
+            if ( this.get("deck").length ) {
+                card = this.get("deck").pop();
+            } else {
+                this.get("deck").reset( this.get("discardDeck").toJSON() )
+                this.get("discardDeck").reset();
+                this.get("deck").shuffle(this.get("deck"))
+                if ( this.get("deck").length ) {
+                    card = this.get("deck").pop();
+                }
+            }
+            if ( card ) {
+                card.set("index", this.get("energy").length )
+                this.get("energy").add(card)
+            }
+        },
+        discardEnergy:function(energyModel){
+            this.get("discardDeck").add(new Backbone.Model({
+                suit: energyModel.get("suit"),
+                number: energyModel.get("number")
+            }))
+        },
+        onTimerTick:function(){
+            this.coolDown()
+
+            if ( this.isCool() ) {
+                var count = Math.min(this.get("generatePerCoolDown"), Math.max(0, this.get("maxEnergy") - this.get("energy").length ))
+                if (count) {
+                    for (var i = 0; i < count; i++) {
+                        this.generateOneEnergy()
+                    }
+                }
+                this.active();
+            }
+        }
+    })
+
     exports.WeaponModel = exports.EquipmentModel.extend({
         defaults:function(){
             return _.extend(exports.EquipmentModel.prototype.defaults.call(this),{
                 isWeapon:true,
-                damageType: "missile",
+                damageType: "laser",
+                baseDamage : 1,
+                damage: 1,
                 weaponSpaceUsage: 1
             })
         },
         getPower:function(){
             return 1;
+        },
+        calDamage:function(energys){
+            var d = this.get("damage")
+            _.each( energys, function(energy){
+                if ( energy.get("suit") == "fire" )
+                    d ++;
+            },this);
+            return d;
+        },
+        active:function(energys){
+            this.get("ship").attack( this, this.calDamage(energys) )
+            exports.EquipmentModel.prototype.active.call(this)
         }
     })
 });

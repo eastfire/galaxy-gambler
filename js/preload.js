@@ -2,7 +2,9 @@ define(function(require,exports,module) {
     var imageList = [
         "loading.gif",
         "on.png",
-        "off.png"
+        "off.png",
+
+        "space.jpg"
     ];
 
     var imgLoad = function (url, callback) {

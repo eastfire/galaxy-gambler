@@ -25,6 +25,9 @@ body {
     position:absolute;
 }
 
+div {
+    font-size:1rem;
+}
 /* space */
 .space {
     width:100%;
@@ -60,12 +63,12 @@ body {
 .energy-card {
     border: 1px solid #000000;
     border-radius: 10%;
-    font-size: 2em;
+    font-size: 1.5rem;
     line-height: 100%;
     padding-top: 1%;
     position: absolute;
     text-align: center;
-    transition: all 0.39s ease-in-out 0s;
+    transition: left 0.39s ease-in-out 0s, margin-top 0.19s ease-in-out 0s, box-shadow 0.19s ease-in-out 0s;
 }
 
 .energy-card.selected {
@@ -102,6 +105,36 @@ body {
 
 .active-btn {
     width:100%;
+}
+
+.active-equipment.show-icon .requirement, .active-equipment.show-image .equipment-image, .active-equipment.show-name .equipment-name {
+    display: inline-block;
+}
+
+.active-equipment.show-image .requirement, .active-equipment.show-name .requirement {
+    display: none;
+}
+.active-equipment.show-icon .equipment-image, .active-equipment.show-name .equipment-image {
+    display: none;
+}
+.active-equipment.show-image .equipment-name, .active-equipment.show-icon .equipment-name {
+    display: none;
+}
+
+.active-equipment .equipment-name {
+    width: 70px;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    height: 30px;
+    line-height: 30px;
+    vertical-align: middle;
+}
+
+.active-equipment .equipment-image {
+    width: 70px;
+    height: 30px;
+    vertical-align: middle;
 }
 
 .active-equipment .valid-status {
@@ -157,62 +190,75 @@ body {
 .requirement.any-suit-same-number-step2-1 {
     background-position: 0px 0px;
     width:19px;
+    margin: 0 25.5px;
 }
 
 .requirement.any-suit-same-number-step2-1more {
     background-position: -23px 0px;
     width:29px;
+    margin: 0 20.5px;
 }
 
 .requirement.any-suit-same-number-step2-2 {
     background-position: -55px 0px;
     width:38px;
+    margin: 0 16px;
 }
 
 .requirement.any-suit-same-number-step2-2more {
     background-position: -95px 0px;
     width:48px;
+    margin: 0 11px;
 }
 
 .requirement.any-suit-same-number-step3-1 {
     background-position: 0px 0px;
     width:30px;
+    margin: 0 20px;
 }
 
 .requirement.any-suit-same-number-step3-1more {
     background-position: 0px 0px;
     width:30px;
+    margin: 0 20px;
 }
 
 .requirement.any-suit-same-number-step3-2 {
     background-position: 0px 0px;
     width:30px;
+    margin: 0 20px;
 }
 
 .requirement.any-suit-same-number-step3-2more {
     background-position: 0px 0px;
     width:30px;
+    margin: 0 20px;
 }
 
 .requirement.same-suit-any-number-3 {
     background-position: 0px -99px;
     width:19px;
+    margin: 0 25.5px;
 }
 .requirement.same-suit-any-number-3more {
     background-position: -26px -99px;
     width:28px;
+    margin: 0 21px;
 }
 .requirement.same-suit-any-number-4 {
     background-position: 0px -99px;
     width:30px;
+    margin: 0 20px;
 }
 .requirement.same-suit-any-number-4more {
     background-position: 0px -99px;
     width:30px;
+    margin: 0 20px;
 }
 .requirement.same-suit-any-number-5 {
     background-position: 0px -99px;
     width:30px;
+    margin: 0 20px;
 }
 
 /*equipment end*/
@@ -283,3 +329,35 @@ body {
     line-height: 16px;
 }
 /*ship status end*/
+
+/*ship*/
+.ship {
+    position:absolute;
+    background-image: url("../img/ships.png");
+}
+.ship.right{
+    transform:scaleX(-1);
+}
+.space #my-ship {
+    bottom: 10px;
+    left: 0px;
+}
+
+.ship.asimov {
+    width: 142px;
+    height:142px;
+}
+.ship.asimov.frame0 {
+    background-position: -426px 0px;
+}
+.ship.asimov.frame1 {
+    background-position: -568px 0px;
+}
+.ship.asimov.frame2 {
+    background-position: -710px 0px;
+}
+
+#opponent-ship-distance {
+    color: white;
+}
+/*ship end*/

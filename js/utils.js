@@ -104,3 +104,45 @@ function relative_time_text(timestamp, local){
 }
 
 window.isTouchDevice = 'ontouchstart' in document.documentElement;
+
+window.NumberFlipView = Backbone.View.extend({
+    initialize:function(options){
+        this.showingNumber = this.number = options.number || 0;
+        this.minStep = options.minStep || 1;
+        this.flipCount = options.flipCount || 8;
+        this.flipTime = options.flipTime || 100;
+        this.flipUnit = options.flipUnit || 1;
+        this.render();
+    },
+    render:function(){
+        if ( this.flipUnit >= 1 ) {
+            this.$el.html(Math.round(this.showingNumber / this.flipUnit) * this.flipUnit)
+        } else {
+            this.$el.html(Math.round(this.showingNumber * ( 1 / this.flipUnit) ) / ( 1 / this.flipUnit) )
+        }
+        return this;
+    },
+    setNumber:function(number){
+        this.number = number;
+        this.step = Math.max(this.minStep, Math.abs( Math.round( (this.showingNumber - this.number) / this.flipCount ) ) );
+        this.flipNumber();
+    },
+    flipNumber:function(){
+        if ( this.showingNumber > this.number ) {
+            this.showingNumber -= Math.min( this.step, this.showingNumber - this.number );
+        } else {
+            this.showingNumber += Math.min( this.step, this.number - this.showingNumber );
+        }
+        this.render();
+        if ( this.showingNumber != this.number ){
+            var self = this;
+            this.timeout = setTimeout(function(){
+                self.flipNumber.call(self)
+            }, this.flipTime)
+        }
+    },
+    remove:function(){
+        Backbone.View.prototype.remove.call(this)
+        clearTimeout(this.timeout);
+    }
+})

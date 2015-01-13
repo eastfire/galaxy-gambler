@@ -76,7 +76,7 @@ define(function(require,exports,module){
             Backbone.View.prototype.remove.call(this)
         },
         beUsed:function(){
-
+            
             this.model.destroy();
         }
     })
@@ -84,7 +84,10 @@ define(function(require,exports,module){
     exports.EngineView = Backbone.View.extend({
         events:{
             "click .sort-type-number":"onSortByNumber",
-            "click .sort-type-suit":"onSortBySuit"
+            "click .sort-type-suit":"onSortBySuit",
+            "click #icon":"onSetShowStatus",
+            "click #image":"onSetShowStatus",
+            "click #name":"onSetShowStatus"
         },
         bindings:{
             "#max-energy-number":"maxEnergy"
@@ -94,11 +97,10 @@ define(function(require,exports,module){
             this.currentEnergyNumber = this.$("#current-energy-number")
 
             this.energyList.height(cardHeight*1.1)
-            this.energyCollection = new Backbone.Collection();
-            this.energyCollection.on("add",this.onAddEnergy, this)
-            this.energyCollection.on("remove",this.rearrange, this)
-            this.energyCollection.on("sort",this.rearrange, this)
-            this.energyCollection.on("selectedChange", function(){
+            this.model.get("energy").on("add",this.onAddEnergy, this)
+            this.model.get("energy").on("remove",this.rearrange, this)
+            this.model.get("energy").on("sort",this.rearrange, this)
+            this.model.get("energy").on("selectedChange", function(){
                 this.trigger("selectedChange")
             },this)
             this.sortTypes = [
@@ -124,18 +126,11 @@ define(function(require,exports,module){
                     return model.get("index")
                 }
             ]
-            this.energyCollection.comparator = this.sortTypes[ 2 ];
+            this.model.get("energy").comparator = this.sortTypes[ 2 ];
             this.stickit();
         },
         renderEngineStatus:function(){
-            this.currentEnergyNumber.html(this.energyCollection.length);
-        },
-        generateEnergy:function(){
-            this.energyCollection.add(new Backbone.Model({
-                suit:getRandomItem(this.model.get("validSuit")),
-                number:getRandomItem(this.model.get("validNumber")),
-                index: this.energyCollection.length
-            }))
+            this.currentEnergyNumber.html(this.model.get("energy").length);
         },
         onAddEnergy:function(energyModel){
             var energyView = new exports.EnergyView({model: energyModel, engineWidth:this.$el.width()})
@@ -149,62 +144,59 @@ define(function(require,exports,module){
         },
         rearrange:function(){
             this.renderEngineStatus();
-            for ( var i = 0; i < this.energyCollection.length; i++ ){
-                this.energyCollection.at(i).set("index", i);
+            for ( var i = 0; i < this.model.get("energy").length; i++ ){
+                this.model.get("energy").at(i).set("index", i);
             }
         },
         onSortByNumber:function(){
-            this.energyCollection.comparator = this.sortTypes[ 0 ];
-            this.energyCollection.sort();
-            this.energyCollection.comparator = this.sortTypes[ 2 ];
+            this.model.get("energy").comparator = this.sortTypes[ 0 ];
+            this.model.get("energy").sort();
+            this.model.get("energy").comparator = this.sortTypes[ 2 ];
         },
         onSortBySuit:function(){
-            this.energyCollection.comparator = this.sortTypes[ 1 ];
-            this.energyCollection.sort();
-            this.energyCollection.comparator = this.sortTypes[ 2 ];
+            this.model.get("energy").comparator = this.sortTypes[ 1 ];
+            this.model.get("energy").sort();
+            this.model.get("energy").comparator = this.sortTypes[ 2 ];
+        },
+        onSetShowStatus:function(event){
+            var target = $(event.target)
+            var status = target.attr("id")
+            _.each( window.battleView.equipmentViewList, function(equipmentView){
+                equipmentView.setShowStatus(status)
+            },this);
         },
         getCurrentSelectedEnergy:function(){
             var selected = this.energyList.find(".selected");
             var energyModels = [];
             _.each( selected, function(s){
                 var cid = s.getAttribute("id")
-                energyModels.push( this.energyCollection.get(cid) )
+                energyModels.push( this.model.get("energy").get(cid) )
             },this)
             return _.sortBy(energyModels,function(model){
                 return (model.get("number")+10) + model.get("suit")
             });
         },
         onStartBattle:function(){
-            for ( var i = 0; i < this.model.get("startingEnergy"); i ++) {
-                this.generateEnergy()
-            }
+            this.model.initialEnergy();
         },
         getEnergyCount:function(){
-            return this.energyCollection.length;
+            return this.model.get("energy").length;
         },
         useEnergy:function(energys){
             _.each(energys,function(e){
+                this.model.discardEnergy(e)
                 e.trigger("used");
-            })
+            },this)
             this.trigger("selectedChange")
         },
         removeEnergy:function(energys){
             _.each(energys,function(e){
+                this.model.discardEnergy(e)
                 e.destroy();
-            })
+            },this)
         },
         onTimerTick:function(){
-            this.model.coolDown()
-
-            if ( this.model.isCool() ) {
-                var count = Math.min(this.model.get("generateEnergy"), Math.max(0, this.model.get("maxEnergy") - this.getEnergyCount()))
-                if (count) {
-                    for (var i = 0; i < count; i++) {
-                        this.generateEnergy()
-                    }
-                }
-                this.model.active();
-            }
+            this.model.onTimerTick()
         }
     })
 
@@ -213,17 +205,26 @@ define(function(require,exports,module){
             "click .active-btn":"onPressActive"
         },
         initialize:function(options){
+            this.showStatus = "show-icon"
             this.initLayout()
             this.model.on("change:currentCount",this.renderCoolDown,this)
             var self = this;
         },
+        setShowStatus:function(status){
+            this.$el.removeClass("show-icon")
+            this.$el.removeClass("show-image")
+            this.$el.removeClass("show-name")
+            this.$el.addClass("show-"+status)
+        },
         initLayout:function(){
-            this.$el.addClass("active-equipment")
+            this.$el.addClass("active-equipment "+this.showStatus)
             this.$el.html("<button class='active-btn btn'>" +
                 "<span class='valid-status'></span>" +
                 "<span class='cool-down-count-down'></span>"+
                 "<span class='requirement "+this.model.getRequirementClass()+"'></span>"+
-                this.model.get("name")+suitSymbols[this.model.get("overdriveType")]+
+                "<span class='equipment-image'></span>"+
+                "<span class='equipment-name'>"+this.model.get("name")+"</span>"+
+                "<span class='equipment-overdrive-icon'>"+suitSymbols[this.model.get("overdriveType")]+"</span>"+
                 "</button>");
             //this.validStatus = this.$(".valid-status")
             this.activeButton = this.$(".active-btn")
@@ -263,13 +264,13 @@ define(function(require,exports,module){
         onPressActive:function(){
             var energys = battleView.engine.getCurrentSelectedEnergy()
             if ( this.checkValid(energys) ) {
+                this.active(energys);
                 battleView.engine.useEnergy(energys)
-                this.active();
             }
         },
-        active:function(){
+        active:function(energys){
+            this.model.active(energys);
             this.$el.removeClass("ok")
-            this.model.active();
             this.circle.set(0);
             this.renderCoolDown();
         },
@@ -283,8 +284,8 @@ define(function(require,exports,module){
             if ( countDown != 0 ) {
                 this.$el.addClass("disabled")
                 this.activeButton.addClass("disabled")
-                var rate = (this.model.get("currentCount"))/this.model.getCoolDown();
-                var rate2 = (this.model.get("currentCount")+1)/this.model.getCoolDown();
+                var rate = (this.model.get("currentCount"))/this.model.get("coolDown");
+                var rate2 = (this.model.get("currentCount")+1)/this.model.get("coolDown");
                 var c = Math.round(256*(1-rate))
                 var c2 = Math.round(256*(1-rate2))
                 this.circle.animate(rate2,{
@@ -307,7 +308,7 @@ define(function(require,exports,module){
                 updateMethod:"css",
                 onGet:function(val){
                     return {
-                        width : 100*val/this.model.get("maxShield")+"%"
+                        width : 100*(Math.max(0,val))/this.model.get("maxShield")+"%"
                     }
                 }
             },
@@ -316,7 +317,7 @@ define(function(require,exports,module){
                 updateMethod:"css",
                 onGet:function(val){
                     return {
-                        width : 100*val/this.model.get("maxHp")+"%"
+                        width : 100*(Math.max(0,val))/this.model.get("maxHp")+"%"
                     }
                 }
             },
@@ -346,4 +347,35 @@ define(function(require,exports,module){
             return this;
         }
     })
+
+    exports.ShipView = Backbone.View.extend({
+        initialize:function(options){
+            this.direction = options.direction;
+            this.initLayout();
+            this.initEvent();
+        },
+        initLayout:function(){
+            this.$el.addClass("ship")
+            this.$el.addClass(this.model.get("shipClass"))
+            this.$el.addClass(this.direction)
+            this.currentFrame = 0;
+            this.maxFrame = 3;
+            this.$el.addClass("frame"+this.currentFrame)
+        },
+        initEvent:function(){
+            this.model.on("attack",this.onEmitAttack,this)
+        },
+        onEmitAttack:function(weapon, damage){
+
+        },
+        render:function(){
+            return this;
+        },
+        onTimerTick:function(){
+            this.$el.removeClass("frame"+this.currentFrame);
+            this.currentFrame = (this.currentFrame+1)%this.maxFrame;
+            this.$el.addClass("frame"+this.currentFrame);
+        }
+    })
+
 });

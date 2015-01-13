@@ -118,22 +118,24 @@ define(function(require,exports,module) {
                 "background-position":Math.round(Math.random()*101)+"% "+Math.round(Math.random()*101)+"%"
             })
 
-            var engineModel = new DataModel.EquipmentModel({
-                validSuit: ["shield","tool","energy","fire"],
-                validNumber: [1,2,3,4,5,6,7,8],
-                startingEnergy: 4,
-                basicCoolDown : 3,
-                generateEnergy : 1,
-                maxEnergy: 10
-            })
+            var engineModel = new DataModel.EngineModel({})
             this.engine = new View.EngineView({el: this.$(".engine"), model: engineModel})
-            this.engine.onStartBattle()
 
             this.myShipModel = new DataModel.ShipModel({
-
+                engine: engineModel
             })
+            this.myShipModel.initialDeck();
+
             this.opponentShipModel = new DataModel.ShipModel({
 
+            })
+
+            this.engine.onStartBattle()
+
+            this.myShipView = new View.ShipView({
+                el : this.$("#my-ship"),
+                model: this.myShipModel,
+                direction: "right"
             })
 
             this.myShipStatusView = new View.ShipStatusView({
@@ -150,10 +152,18 @@ define(function(require,exports,module) {
             })
             this.opponentShipStatusView.render();
 
+            window.distance = opponentDistance = new window.NumberFlipView({
+                el: $("#opponent-ship-distance-number"),
+                number:1000,
+                flipCount: 10,
+                flipUnit: 0.1
+            })
+
             this.equipmentModels = [
                 new DataModel.WeaponModel({
                     name:"炮11",
                     overdriveType:"fire",
+                    ship: this.myShipModel,
                     requirement:{
                         suit: "any", //any, same, rainbow
                         number: "same", //any, same, straight, different, odd, even
@@ -165,6 +175,7 @@ define(function(require,exports,module) {
                 new DataModel.WeaponModel({
                     name:"炮11+",
                     overdriveType:"fire",
+                    ship: this.myShipModel,
                     requirement:{
                         suit: "any", //any, same, rainbow
                         number: "same", //any, same, straight, different, odd, even
@@ -176,6 +187,7 @@ define(function(require,exports,module) {
                 new DataModel.WeaponModel({
                     name:"炮1122",
                     overdriveType:"fire",
+                    ship: this.myShipModel,
                     requirement:{
                         suit: "any", //any, same, rainbow
                         number: "same", //any, same, straight, different, odd, even
@@ -187,6 +199,7 @@ define(function(require,exports,module) {
                 new DataModel.WeaponModel({
                     name:"炮1122+",
                     overdriveType:"fire",
+                    ship: this.myShipModel,
                     requirement:{
                         suit: "any", //any, same, rainbow
                         number: "same", //any, same, straight, different, odd, even
@@ -198,6 +211,7 @@ define(function(require,exports,module) {
                 new DataModel.WeaponModel({
                     name:"炮A3",
                     overdriveType:"fire",
+                    ship: this.myShipModel,
                     requirement:{
                         suit: "same", //any, same, rainbow
                         number: "any", //any, same, straight, different, odd, even
@@ -223,6 +237,7 @@ define(function(require,exports,module) {
 
             var self = this;
             this.interval = setInterval(function(){
+                self.myShipView.onTimerTick();
                 self.engine.onTimerTick.call(self.engine);
                 _.each(self.equipmentViewList, function(equipmentView){
                     equipmentView.onTimerTick.call(equipmentView)
